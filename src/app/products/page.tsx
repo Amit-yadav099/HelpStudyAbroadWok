@@ -29,20 +29,17 @@ import { useRouter } from 'next/navigation';
 import { useProductStore } from '@/src/stores/productStore';
 import ProtectedRoute from '@/src/components/Layout/ProtectedRoute';
 
-// CONSTANTS
-const ITEMS_PER_PAGE = 12; // Set to 12 for better grid alignment (divisible by 2, 3, 4)
+const ITEMS_PER_PAGE = 12; 
 
-// HELPER: CSS styles for text truncation
 const truncateStyle = (lines: number) => ({
   display: '-webkit-box',
   overflow: 'hidden',
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: lines,
   textOverflow: 'ellipsis',
-  height: 'auto', // Ensures container shrinks to fit text or caps at line clamp
+  height: 'auto', 
 });
 
-// HOOK: Debounce
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
@@ -65,7 +62,6 @@ export default function ProductsPage() {
     products, 
     categories, 
     total, 
-    // We ignore the store's 'limit' and use our local constant to enforce requirement
     isLoading, 
     error, 
     fetchProducts, 
@@ -81,12 +77,10 @@ export default function ProductsPage() {
 
   const debouncedSearchTerm = useDebounce(searchQuery, 500);
 
-  // Initial fetch for categories
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  // Format category values
   useEffect(() => {
     if (categories?.length > 0) {
       if (typeof categories[0] === 'string') {
@@ -100,19 +94,17 @@ export default function ProductsPage() {
     }
   }, [categories]);
 
-  // MASTER EFFECT
   useEffect(() => {
     const skip = (page - 1) * ITEMS_PER_PAGE;
 
-    // Priority 1: Search
     if (debouncedSearchTerm.trim()) {
       searchProducts(debouncedSearchTerm);
     } 
-    // Priority 2: Category Filter
+
     else if (selectedCategory !== 'all') {
       fetchProductsByCategory(selectedCategory, ITEMS_PER_PAGE, skip);
     } 
-    // Priority 3: Default Fetch
+
     else {
       fetchProducts(ITEMS_PER_PAGE, skip);
     }
@@ -151,7 +143,6 @@ export default function ProductsPage() {
           Product Management
         </Typography>
 
-        {/* Search + Filter Section */}
         <Paper
           elevation={0}
           variant="outlined"
@@ -203,28 +194,26 @@ export default function ProductsPage() {
           </Grid>
         </Paper>
 
-        {/* Error Alert */}
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
             {error}
           </Alert>
         )}
 
-        {/* Loading */}
+
         {isLoading ? (
           <Box display="flex" justifyContent="center" my={10}>
             <CircularProgress size={60} />
           </Box>
         ) : (
           <>
-            {/* Product Grid */}
             <Grid container spacing={3}>
               {products.map(product => (
-                // Used lg={3} to show 4 items per row on large screens
+
                 <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
                   <Card
                     sx={{
-                      height: '100%', // Critical for uniform height
+                      height: '100%', 
                       display: 'flex',
                       flexDirection: 'column',
                       borderRadius: 3,
@@ -240,11 +229,11 @@ export default function ProductsPage() {
                     <Box sx={{ position: 'relative' }}>
                       <CardMedia
                         component="img"
-                        height="220" // Fixed height for all images
+                        height="220" 
                         image={product.thumbnail}
                         alt={product.title}
                         sx={{
-                          objectFit: 'cover', // Ensures image fills the 220px without distortion
+                          objectFit: 'cover', 
                           bgcolor: '#f5f5f5',
                         }}
                       />
@@ -262,13 +251,12 @@ export default function ProductsPage() {
                     </Box>
 
                     <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      {/* Category Chip */}
                       <Box>
                          <Chip
                           label={formatCategoryName(product.category)}
                           size="small"
                           color="primary"
-                          variant="soft" // If utilizing Joy UI or customized theme, otherwise use standard
+                          variant="soft" 
                           sx={{ 
                             height: 24, 
                             fontSize: '0.75rem',
@@ -277,18 +265,16 @@ export default function ProductsPage() {
                         />
                       </Box>
 
-                      {/* Title: Truncated to 1 line */}
                       <Typography 
                         variant="h6" 
                         fontWeight={700} 
                         lineHeight={1.2}
                         sx={truncateStyle(1)}
-                        title={product.title} // Tooltip on hover
+                        title={product.title} 
                       >
                         {product.title}
                       </Typography>
 
-                      {/* Rating */}
                       <Stack direction="row" spacing={1} alignItems="center">
                         <Rating value={product.rating} readOnly size="small" precision={0.1} />
                         <Typography variant="caption" color="text.secondary">
@@ -296,21 +282,20 @@ export default function ProductsPage() {
                         </Typography>
                       </Stack>
 
-                      {/* Description: Truncated to 2 lines */}
                       <Typography 
                         variant="body2" 
                         color="text.secondary" 
                         sx={{ 
                           ...truncateStyle(2),
                           mt: 1,
-                          flexGrow: 1 // Pushes the price/button section down
+                          flexGrow: 1 
                         }}
                       >
                         {product.description}
                       </Typography>
                     </CardContent>
 
-                    {/* Footer Section: Always aligned at bottom due to flexGrow above */}
+                   
                     <CardActions sx={{ p: 2, pt: 0, mt: 'auto' }}>
                       <Grid container alignItems="center" justifyContent="space-between">
                         <Grid item>
@@ -336,7 +321,7 @@ export default function ProductsPage() {
               ))}
             </Grid>
 
-            {/* Pagination */}
+          
             {totalPages > 1 && (
               <Box display="flex" justifyContent="center" mt={6} mb={2}>
                 <Pagination
