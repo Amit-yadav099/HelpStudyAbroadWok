@@ -137,7 +137,7 @@ To optimize performance and reduce API load, we implemented client-side caching 
     Navigate to [http://localhost:3000](http://localhost:3000) to view the application.
 
 
-## <a name="Images">Sample Images</a>
+## <a name="Images">Different Pages UI</a>
 <img width="1470" alt="login" src="./public/login.png">
 <img width="1470" alt="productDetail" src="./public/ProductDetail.png">
 <img width="1470" alt="Products" src="./public/products.png">
