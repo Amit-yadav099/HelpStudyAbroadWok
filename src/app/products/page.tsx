@@ -22,13 +22,27 @@ import {
   Chip,
   Rating,
   Paper,
+  Stack,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { useRouter } from 'next/navigation';
 import { useProductStore } from '@/src/stores/productStore';
 import ProtectedRoute from '@/src/components/Layout/ProtectedRoute';
 
-// 1. The Reusable Hook
+// CONSTANTS
+const ITEMS_PER_PAGE = 12; // Set to 12 for better grid alignment (divisible by 2, 3, 4)
+
+// HELPER: CSS styles for text truncation
+const truncateStyle = (lines: number) => ({
+  display: '-webkit-box',
+  overflow: 'hidden',
+  WebkitBoxOrient: 'vertical',
+  WebkitLineClamp: lines,
+  textOverflow: 'ellipsis',
+  height: 'auto', // Ensures container shrinks to fit text or caps at line clamp
+});
+
+// HOOK: Debounce
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
@@ -51,7 +65,7 @@ export default function ProductsPage() {
     products, 
     categories, 
     total, 
-    limit, 
+    // We ignore the store's 'limit' and use our local constant to enforce requirement
     isLoading, 
     error, 
     fetchProducts, 
@@ -65,10 +79,9 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [formattedCategories, setFormattedCategories] = useState<string[]>([]);
 
-  // 2. Create the debounced value (500ms delay)
   const debouncedSearchTerm = useDebounce(searchQuery, 500);
 
-  // Initial fetch for categories only
+  // Initial fetch for categories
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -87,38 +100,36 @@ export default function ProductsPage() {
     }
   }, [categories]);
 
-  // 3. MASTER EFFECT: Handles Search, Category Filter, and Pagination
+  // MASTER EFFECT
   useEffect(() => {
-    // Priority 1: Search (Global)
+    const skip = (page - 1) * ITEMS_PER_PAGE;
+
+    // Priority 1: Search
     if (debouncedSearchTerm.trim()) {
       searchProducts(debouncedSearchTerm);
     } 
     // Priority 2: Category Filter
     else if (selectedCategory !== 'all') {
-      fetchProductsByCategory(selectedCategory, limit, (page - 1) * limit);
+      fetchProductsByCategory(selectedCategory, ITEMS_PER_PAGE, skip);
     } 
     // Priority 3: Default Fetch
     else {
-      fetchProducts(limit, (page - 1) * limit);
+      fetchProducts(ITEMS_PER_PAGE, skip);
     }
-  }, [debouncedSearchTerm, selectedCategory, page, limit]); 
+  }, [debouncedSearchTerm, selectedCategory, page]); 
 
-  // 4. Handle Search Input
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setPage(1); // Always reset to page 1 on new search
-    
-    // Optional: If you want search to automatically reset category to 'all'
+    setPage(1); 
     if (selectedCategory !== 'all') {
       setSelectedCategory('all');
     }
   };
 
-  // 5. Handle Category Change
   const handleCategoryChange = (e: any) => {
     setSelectedCategory(e.target.value);
     setPage(1);
-    setSearchQuery(''); // Clear search when picking a category
+    setSearchQuery(''); 
   };
 
   const formatCategoryName = (category: string) =>
@@ -127,7 +138,7 @@ export default function ProductsPage() {
       .map(w => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ');
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
   const handleViewProduct = (id: number) => {
     router.push(`/products/${id}`);
@@ -135,19 +146,21 @@ export default function ProductsPage() {
 
   return (
     <ProtectedRoute>
-      <Box sx={{ py: 3 }}>
+      <Box sx={{ py: 3, px: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
           Product Management
         </Typography>
 
-        {/* Search + Filter */}
+        {/* Search + Filter Section */}
         <Paper
-          elevation={3}
+          elevation={0}
+          variant="outlined"
           sx={{
             p: 3,
             borderRadius: 3,
             mb: 4,
             bgcolor: 'background.paper',
+            border: '1px solid #eee'
           }}
         >
           <Grid container spacing={3}>
@@ -155,14 +168,11 @@ export default function ProductsPage() {
               <TextField
                 fullWidth
                 placeholder="Search products..."
-                value={searchQuery} // Binds to immediate state
+                value={searchQuery}
                 onChange={handleSearchChange}
                 variant="outlined"
                 InputProps={{
-                  sx: {
-                    borderRadius: 2,
-                    bgcolor: '#fafafa',
-                  },
+                  sx: { borderRadius: 2, bgcolor: '#fafafa' },
                   startAdornment: (
                     <InputAdornment position="start">
                       <SearchIcon />
@@ -202,87 +212,124 @@ export default function ProductsPage() {
 
         {/* Loading */}
         {isLoading ? (
-          <Box display="flex" justifyContent="center" my={4}>
-            <CircularProgress />
+          <Box display="flex" justifyContent="center" my={10}>
+            <CircularProgress size={60} />
           </Box>
         ) : (
           <>
-            {/* Product Cards */}
-            <Grid container spacing={4}>
+            {/* Product Grid */}
+            <Grid container spacing={3}>
               {products.map(product => (
-                <Grid item xs={12} sm={6} md={4} key={product.id}>
+                // Used lg={3} to show 4 items per row on large screens
+                <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
                   <Card
                     sx={{
-                      height: '100%',
+                      height: '100%', // Critical for uniform height
                       display: 'flex',
                       flexDirection: 'column',
                       borderRadius: 3,
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                      transition: '0.3s',
+                      transition: 'all 0.3s ease-in-out',
+                      border: '1px solid transparent',
                       '&:hover': {
-                        boxShadow: '0 6px 25px rgba(0,0,0,0.15)',
-                        transform: 'translateY(-4px)',
+                        transform: 'translateY(-5px)',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                        borderColor: 'primary.light',
                       },
                     }}
                   >
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={product.thumbnail}
-                      alt={product.title}
-                      sx={{
-                        objectFit: 'cover',
-                        borderTopLeftRadius: 12,
-                        borderTopRightRadius: 12,
-                      }}
-                    />
+                    <Box sx={{ position: 'relative' }}>
+                      <CardMedia
+                        component="img"
+                        height="220" // Fixed height for all images
+                        image={product.thumbnail}
+                        alt={product.title}
+                        sx={{
+                          objectFit: 'cover', // Ensures image fills the 220px without distortion
+                          bgcolor: '#f5f5f5',
+                        }}
+                      />
+                      <Chip 
+                        label={product.brand}
+                        size="small"
+                        sx={{ 
+                          position: 'absolute', 
+                          top: 10, 
+                          right: 10, 
+                          bgcolor: 'rgba(255,255,255,0.9)',
+                          fontWeight: 600
+                        }} 
+                      />
+                    </Box>
 
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="h6" fontWeight={600}>
+                    <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {/* Category Chip */}
+                      <Box>
+                         <Chip
+                          label={formatCategoryName(product.category)}
+                          size="small"
+                          color="primary"
+                          variant="soft" // If utilizing Joy UI or customized theme, otherwise use standard
+                          sx={{ 
+                            height: 24, 
+                            fontSize: '0.75rem',
+                            mb: 1
+                          }}
+                        />
+                      </Box>
+
+                      {/* Title: Truncated to 1 line */}
+                      <Typography 
+                        variant="h6" 
+                        fontWeight={700} 
+                        lineHeight={1.2}
+                        sx={truncateStyle(1)}
+                        title={product.title} // Tooltip on hover
+                      >
                         {product.title}
                       </Typography>
 
-                      <Typography variant="body2" color="text.secondary" sx={{ my: 1 }}>
-                        {product.description.length > 100
-                          ? product.description.substring(0, 100) + '...'
-                          : product.description}
-                      </Typography>
-
-                      <Box display="flex" alignItems="center" mb={1}>
-                        <Rating value={product.rating} readOnly size="small" />
-                        <Typography variant="body2" sx={{ ml: 1 }}>
+                      {/* Rating */}
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Rating value={product.rating} readOnly size="small" precision={0.1} />
+                        <Typography variant="caption" color="text.secondary">
                           ({product.rating.toFixed(1)})
                         </Typography>
-                      </Box>
+                      </Stack>
 
-                      <Chip
-                        label={formatCategoryName(product.category)}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                        sx={{ mr: 1 }}
-                      />
-                      <Chip
-                        label={product.brand}
-                        size="small"
-                        color="secondary"
-                        variant="outlined"
-                      />
+                      {/* Description: Truncated to 2 lines */}
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary" 
+                        sx={{ 
+                          ...truncateStyle(2),
+                          mt: 1,
+                          flexGrow: 1 // Pushes the price/button section down
+                        }}
+                      >
+                        {product.description}
+                      </Typography>
                     </CardContent>
 
-                    <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-                      <Typography variant="h6" color="primary" fontWeight={700}>
-                        ${product.price.toFixed(2)}
-                      </Typography>
-
-                      <Button
-                        size="small"
-                        variant="contained"
-                        sx={{ borderRadius: 2 }}
-                        onClick={() => handleViewProduct(product.id)}
-                      >
-                        View Details
-                      </Button>
+                    {/* Footer Section: Always aligned at bottom due to flexGrow above */}
+                    <CardActions sx={{ p: 2, pt: 0, mt: 'auto' }}>
+                      <Grid container alignItems="center" justifyContent="space-between">
+                        <Grid item>
+                          <Typography variant="h6" color="primary" fontWeight={700}>
+                            ${product.price.toFixed(2)}
+                          </Typography>
+                        </Grid>
+                        <Grid item>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            disableElevation
+                            onClick={() => handleViewProduct(product.id)}
+                            sx={{ borderRadius: 2, textTransform: 'none' }}
+                          >
+                            View Details
+                          </Button>
+                        </Grid>
+                      </Grid>
                     </CardActions>
                   </Card>
                 </Grid>
@@ -291,15 +338,13 @@ export default function ProductsPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <Box display="flex" justifyContent="center" mt={4}>
+              <Box display="flex" justifyContent="center" mt={6} mb={2}>
                 <Pagination
                   count={totalPages}
                   page={page}
                   onChange={(e, v) => setPage(v)}
                   color="primary"
-                  sx={{
-                    '& .MuiPaginationItem-root': { borderRadius: 2 },
-                  }}
+                  size="large"
                   showFirstButton
                   showLastButton
                 />
