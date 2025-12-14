@@ -256,7 +256,7 @@ export default function ProductsPage() {
                           label={formatCategoryName(product.category)}
                           size="small"
                           color="primary"
-                          variant="soft" 
+                          variant="filled" 
                           sx={{ 
                             height: 24, 
                             fontSize: '0.75rem',

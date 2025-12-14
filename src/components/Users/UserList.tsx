@@ -20,7 +20,7 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon 
 } from '@mui/icons-material';
-import { User } from '@/src/types';
+import { User } from '@/src/types/user';
 import Link from 'next/link';
 
 interface UserTableProps {

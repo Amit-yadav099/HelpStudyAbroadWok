@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/src/theme/theme';
@@ -19,7 +18,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SessionProvider>
-          <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
               <CssBaseline />
               <Navbar />
@@ -29,7 +27,6 @@ export default function RootLayout({
                 </Box>
               </Container>
             </ThemeProvider>
-          </AppRouterCacheProvider>
         </SessionProvider>
       </body>
     </html>

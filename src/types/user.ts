@@ -6,6 +6,7 @@ export interface User {
   gender: string;
   phone: string;
   username: string;
+  age:number,
   birthDate: string;
   image: string;
   height: number;

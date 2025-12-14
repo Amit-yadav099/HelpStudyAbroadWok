@@ -6,11 +6,17 @@ interface ProductState {
   products: Product[];
   categories: string[];
   selectedProduct: Product | null;
+  shippingInformation: string | null;
+  warrantyInformation: string | null;
+  dimensions:string | null;
   total: number;
   skip: number;
+  searchQuery:string | null;
+  selectedCategory: string | null;
   limit: number;
   isLoading: boolean;
   error: string | null;
+   
   fetchProducts: (limit?: number, skip?: number) => Promise<void>;
   searchProducts: (query: string) => Promise<void>;
   fetchProduct: (id: number) => Promise<void>;
@@ -23,9 +29,15 @@ export const useProductStore = create<ProductState>((set, get) => ({
   products: [],
   categories: [],
   selectedProduct: null,
+  warrantyInformation:null,
   total: 0,
+  searchQuery:null,
+  selectedCategory:null,
+  dimensions:null,
+  shippingInformation:null,
   skip: 0,
   limit: 10,
+  reviews:null,
   isLoading: false,
   error: null,
   

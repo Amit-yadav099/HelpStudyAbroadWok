@@ -13,7 +13,7 @@ import {
   Stack,
 } from '@mui/material';
 import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material';
-import { useProductsStore } from '@/src/store/products.store';
+import { useProductStore } from '@/src/stores/productStore';
 
 interface ProductFiltersProps {
   onSearch: (query: string) => void;
@@ -29,7 +29,7 @@ const ProductFilters = React.memo(function ProductFilters({
     searchQuery, 
     selectedCategory,
     fetchCategories 
-  } = useProductsStore();
+  } = useProductStore();
 
   useEffect(() => {
     fetchCategories();

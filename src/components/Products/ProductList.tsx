@@ -12,7 +12,7 @@ import {
   Rating,
   Chip,
 } from '@mui/material';
-import { Product } from '@/src/types';
+import { Product } from '@/src/types/product';
 import Link from 'next/link';
 
 interface ProductGridProps {

@@ -4,7 +4,7 @@ export const API_BASE_URL = 'https://dummyjson.com';
 
 export const CACHE_DURATION = 5 * 60 * 1000; 
 export const CACHE_KEYS = {
-  USERS: 'users',
+  USERS: 'users',   
   PRODUCTS: 'products',
   CATEGORIES: 'categories',
 } as const;
